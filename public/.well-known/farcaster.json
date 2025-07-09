@@ -1,0 +1,27 @@
+{
+  "name": "BitQuest",
+  "description": "Location-based AR treasure hunt with Bitrefill rewards",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "launch_url": "https://bitquest.example.com",
+  "splash_screen": "/splash.png",
+  "capabilities": {
+    "auth": true,
+    "location": true,
+    "camera": true
+  },
+  "author": {
+    "name": "BitQuest Team",
+    "url": "https://bitquest.example.com"
+  }
+}
