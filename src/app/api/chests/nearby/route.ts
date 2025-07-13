@@ -1,55 +1,36 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { ChestService } from "@/lib/chestService";
 
-// TODO: Replace with actual database query
-const MOCK_CHESTS = [
-  {
-    id: '1',
-    location: {
-      lat: 40.7128,
-      lng: -74.0060
-    },
-    metadata: {
-      type: 'common',
-      value: 5,
-      model: 'wooden_chest'
-    }
-  },
-  {
-    id: '2',
-    location: {
-      lat: 40.7580,
-      lng: -73.9855
-    },
-    metadata: {
-      type: 'rare',
-      value: 10,
-      model: 'golden_chest'
-    }
-  }
-]
+const chestService = new ChestService();
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const lat = searchParams.get('lat')
-    const lon = searchParams.get('lon')
+    const { searchParams } = new URL(request.url);
+    const lat = searchParams.get("lat");
+    const lon = searchParams.get("lon");
+    const userId = searchParams.get("userId");
 
     if (!lat || !lon) {
       return NextResponse.json(
-        { error: 'Missing lat/lon parameters' },
+        { error: "Missing lat/lon parameters" },
         { status: 400 }
-      )
+      );
     }
 
-    // TODO: Implement actual nearby chest search using PostGIS
-    // For now, return mock data
-    return NextResponse.json(MOCK_CHESTS)
+    const chests = await chestService.findNearbyChests(
+      parseFloat(lat),
+      parseFloat(lon),
+      1000, // 1km radius
+      userId ? parseInt(userId) : undefined
+    );
+
+    return NextResponse.json(chests);
   } catch (error) {
-    console.error('Error fetching nearby chests:', error)
+    console.error("Error fetching nearby chests:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    )
+    );
   }
-} 
+}

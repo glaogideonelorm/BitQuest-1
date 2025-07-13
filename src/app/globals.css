@@ -3,11 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
+  --primary: #ff6b00;
+  --secondary: #2563eb;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+  @apply bg-white text-gray-800;
+}
+
+.container-custom {
+  @apply container mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.btn-primary {
+  @apply bg-[var(--primary)] text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity;
+}
+
+.card {
+  @apply bg-white rounded-xl shadow-md p-6;
 }

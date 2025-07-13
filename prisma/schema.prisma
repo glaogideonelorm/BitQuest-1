@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Chest {
+  id        String   @id @default(cuid())
+  location  Json     // { lat: number, lng: number }
+  metadata  Json     // { type: string, value: number, model: string }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  collections Collection[]
+
+  @@map("chests")
+}
+
+model Collection {
+  id        String   @id @default(cuid())
+  chestId   String
+  userId    Int      // Farcaster FID
+  status    String   @default("pending") // "pending" | "redeemed"
+  createdAt DateTime @default(now())
+  redeemedAt DateTime?
+
+  // Relations
+  chest Chest @relation(fields: [chestId], references: [id], onDelete: Cascade)
+
+  @@map("collections")
+}
+
+model BitrefillReward {
+  id            String   @id @default(cuid())
+  orderId       String   @unique
+  giftCardCode  String?
+  value         Float
+  currency      String   @default("USD")
+  expiresAt     DateTime?
+  status        String   @default("pending") // "pending" | "success" | "error" | "expired"
+  userId        Int      // Farcaster FID
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("bitrefill_rewards")
+}
