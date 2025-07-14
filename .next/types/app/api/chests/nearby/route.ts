@@ -1,4 +1,4 @@
-// File: /Users/gideonglago/Documents/BitQuest-1/src/app/api/chests/nearby/route.ts
+// File: /Users/gideonglago/Documents/BitQuest-1-1/src/app/api/chests/nearby/route.ts
 import * as entry from '../../../../../../src/app/api/chests/nearby/route.js'
 import type { NextRequest } from 'next/server.js'
 

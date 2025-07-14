@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { X, MapPin, Navigation, Camera, ArrowLeft } from "lucide-react";
 import DirectionalArrow from "./DirectionalArrow";
+import { useFarcaster } from "@/hooks/useFarcaster";
 
 interface Chest {
   lat: number;
@@ -51,6 +52,8 @@ export default function ARView({
   const [arrowAngle, setArrowAngle] = useState<number | null>(null);
   const [isSuperNearChest, setIsSuperNearChest] = useState(false);
   const [abandonOverride, setAbandonOverride] = useState(false);
+  const { user } = useFarcaster();
+  const [redeeming, setRedeeming] = useState(false);
 
   // Calculate bearing between two points
   function calculateBearing(
@@ -253,6 +256,39 @@ export default function ARView({
     }
   };
 
+  // Handler for chest click in AR
+  const handleChestClick = async (chest: any) => {
+    if (!user?.fid) {
+      alert("Please sign in to redeem rewards");
+      return;
+    }
+    if (chest.isCollected) {
+      alert("This chest has already been collected.");
+      return;
+    }
+    setRedeeming(true);
+    try {
+      // Try to find chest id (for spawned chests, may not exist)
+      const chestId = chest.id || `${chest.lat},${chest.lng}`;
+      const response = await fetch(`/api/chests/${chestId}/collect`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fid: user.fid }),
+      });
+      if (response.ok) {
+        alert("Chest redeemed! Reward added to your account.");
+        // Optionally update local state/UI here
+      } else {
+        const error = await response.json();
+        alert(error.error || "Failed to redeem chest");
+      }
+    } catch (err) {
+      alert("Error redeeming chest");
+    } finally {
+      setRedeeming(false);
+    }
+  };
+
   // Helper to spawn a chest 0.5m ahead of user
   const spawnChestAhead = () => {
     if (!userLocation || deviceHeading === null || !onSpawnChest) return;
@@ -344,7 +380,11 @@ export default function ARView({
       </div>
 
       {/* AR Scene */}
-      <ARScene chests={chests} userLocation={userLocation} />
+      <ARScene
+        chests={chests}
+        userLocation={userLocation}
+        onChestClick={handleChestClick}
+      />
 
       {/* Main Directional Arrow */}
       {mainChest && (

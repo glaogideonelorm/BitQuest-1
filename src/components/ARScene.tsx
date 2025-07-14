@@ -12,6 +12,7 @@ interface Chest {
 interface ARSceneProps {
   chests: Chest[];
   userLocation?: { lat: number; lng: number } | null;
+  onChestClick?: (chest: Chest) => void;
 }
 
 // Helper to get chest color by type
@@ -26,8 +27,42 @@ const getChestColor = (type: string) => {
   }
 };
 
-export default function ARScene({ chests, userLocation }: ARSceneProps) {
+export default function ARScene({
+  chests,
+  userLocation,
+  onChestClick,
+}: ARSceneProps) {
   const sceneRef = useRef<HTMLDivElement>(null);
+
+  // Handler to attach click event to a-entity after mount
+  useEffect(() => {
+    if (!sceneRef.current || !onChestClick) return;
+    chests.forEach((chest) => {
+      const chestId = `chest-entity-${chest.lat}-${chest.lng}`;
+      const entity = document.getElementById(chestId);
+      if (entity) {
+        // Remove previous listener to avoid duplicates
+        entity.removeEventListener("click", (entity as any)._chestClickHandler);
+        // Create and store handler
+        const handler = () => onChestClick(chest);
+        (entity as any)._chestClickHandler = handler;
+        entity.addEventListener("click", handler);
+      }
+    });
+    // Cleanup
+    return () => {
+      chests.forEach((chest) => {
+        const chestId = `chest-entity-${chest.lat}-${chest.lng}`;
+        const entity = document.getElementById(chestId);
+        if (entity && (entity as any)._chestClickHandler) {
+          entity.removeEventListener(
+            "click",
+            (entity as any)._chestClickHandler
+          );
+        }
+      });
+    };
+  }, [chests, onChestClick]);
 
   // Only render AR.js scene if user is near at least one chest and locations are available
   let shouldShowAR = chests.length > 0 && userLocation;

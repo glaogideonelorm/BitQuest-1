@@ -1,4 +1,4 @@
 {
-  "/page": "app/page.js",
-  "/api/chests/nearby/route": "app/api/chests/nearby/route.js"
+  "/api/chests/nearby/route": "app/api/chests/nearby/route.js",
+  "/page": "app/page.js"
 }
