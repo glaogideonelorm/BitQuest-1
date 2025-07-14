@@ -6,7 +6,7 @@ import Hero from "@/components/Hero";
 import ARView from "@/components/ARView";
 import RewardRedemption from "@/components/RewardRedemption";
 import { motion } from "framer-motion";
-import { X, Camera } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
 
 // Import Map component dynamically to avoid SSR issues
 const Map = dynamic(() => import("@/components/Map"), {
@@ -25,16 +25,18 @@ export default function Home() {
   const [isQuestMode, setIsQuestMode] = useState(false);
   const [isArMode, setIsArMode] = useState(false);
   const [selectedChest, setSelectedChest] = useState<any>(null);
+  const [chests, setChests] = useState<any[]>([]);
 
-  const startQuest = (e) => {
+  const startQuest = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsQuestMode(true);
     setIsArMode(false);
   };
 
-  const handleChestSelect = (chest) => {
+  const handleChestSelect = (chest: any, allChests?: any[]) => {
     setSelectedChest(chest);
     setIsArMode(true);
+    if (allChests) setChests(allChests);
   };
 
   const handleChestCollect = async () => {
@@ -45,33 +47,36 @@ export default function Home() {
     alert("Chest collected! Check your map to see the updated status.");
   };
 
+  // Add a callback to spawn a chest
+  const handleSpawnChest = (chest: any) => {
+    setChests((prev) => [...prev, chest]);
+  };
+
   if (isQuestMode) {
     return (
       <div className="fixed inset-0 z-50 bg-white">
         <div className="w-full h-full relative">
+          {/* Back button to return to landing page */}
           <button
             onClick={() => setIsQuestMode(false)}
-            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/80 backdrop-blur-sm text-gray-800 hover:bg-white"
+            className="absolute top-4 left-4 z-20 p-2 rounded-full bg-white/80 backdrop-blur-sm text-gray-800 hover:bg-white shadow-lg"
           >
-            <X size={24} />
+            <ArrowLeft size={24} />
           </button>
 
           {!isArMode ? (
-            <>
-              <Map onChestSelect={handleChestSelect} />
-              <button
-                onClick={() => setIsArMode(true)}
-                className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 btn-primary inline-flex items-center gap-2 text-lg"
-              >
-                <Camera size={20} />
-                Switch to AR View
-              </button>
-            </>
+            <Map
+              onChestSelect={(chest, allChests) =>
+                handleChestSelect(chest, allChests)
+              }
+              setChests={setChests}
+            />
           ) : (
             <ARView
-              chestType={selectedChest?.metadata?.type}
-              onCollect={handleChestCollect}
-              isCollected={selectedChest?.isCollected}
+              chests={chests}
+              selectedChest={selectedChest}
+              onBack={() => setIsArMode(false)}
+              onSpawnChest={handleSpawnChest}
             />
           )}
         </div>
@@ -102,55 +107,6 @@ export default function Home() {
             </p>
             <div className="h-[70vh] rounded-xl overflow-hidden">
               <Map />
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* AR View Section */}
-      <section id="ar-view" className="py-16">
-        <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-8">
-                  Augmented Reality Treasure Hunt
-                </h2>
-                <p className="text-lg text-gray-600 mb-8">
-                  Use your phone's camera to locate and collect virtual treasure
-                  chests in the real world. It's like Pokémon GO, but with real
-                  rewards!
-                </p>
-                <div className="card bg-[var(--primary)] text-white">
-                  <h3 className="text-xl font-semibold mb-4">How to Collect</h3>
-                  <ol className="space-y-4">
-                    <li className="flex gap-3">
-                      <span className="font-bold">1.</span>
-                      <span>Find a chest on the map</span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="font-bold">2.</span>
-                      <span>Walk to its location</span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="font-bold">3.</span>
-                      <span>Open your camera</span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="font-bold">4.</span>
-                      <span>Collect the treasure!</span>
-                    </li>
-                  </ol>
-                </div>
-              </div>
-              <div className="relative">
-                <ARView />
-              </div>
             </div>
           </motion.div>
         </div>
@@ -246,7 +202,7 @@ export default function Home() {
               onClick={startQuest}
               className="inline-flex items-center px-8 py-3 border-2 border-white text-lg font-semibold rounded-lg text-white hover:bg-white hover:text-[var(--primary)] transition-colors duration-200"
             >
-              Start Now
+              Start Quest
             </a>
           </motion.div>
         </div>

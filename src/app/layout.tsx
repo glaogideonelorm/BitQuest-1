@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -71,6 +72,14 @@ export default function RootLayout({
         />
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <Script
+          src="https://aframe.io/releases/1.3.0/aframe.min.js"
+          strategy="beforeInteractive"
+        />
+        <Script
+          src="https://raw.githack.com/AR-js-org/AR.js/3.4.5/aframe/build/aframe-ar.js"
+          strategy="beforeInteractive"
+        />
       </head>
       <body className={`${inter.className} antialiased`}>
         <Header />

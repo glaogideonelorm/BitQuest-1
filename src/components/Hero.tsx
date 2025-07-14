@@ -1,94 +1,154 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { MapPin, Sparkles, Gift } from "lucide-react";
 
-export default function Hero({
-  onStartQuest,
-}: {
-  onStartQuest: (e: React.MouseEvent<HTMLAnchorElement>) => void;
-}) {
+interface HeroProps {
+  onStartQuest: (e: React.MouseEvent) => void;
+}
+
+export default function Hero({ onStartQuest }: HeroProps) {
   return (
-    <div className="relative isolate overflow-hidden">
-      {/* Background gradient */}
-      <div
-        className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-        aria-hidden="true"
-      >
-        <div
-          className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[var(--primary)] to-[var(--secondary)] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-          style={{
-            clipPath:
-              "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
-          }}
+    <section className="relative overflow-hidden bg-gradient-to-br from-[var(--primary-dark)] via-[var(--primary)] to-[var(--primary-light)] py-24 sm:py-32">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff12_1px,transparent_1px)] bg-[size:3rem_3rem]" />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.5 }}
+          transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+          className="absolute inset-0 bg-gradient-to-t from-transparent via-white/5 to-transparent"
         />
       </div>
 
-      {/* Hero content */}
-      <div className="mx-auto max-w-7xl px-6 pb-24 pt-32 sm:pt-40 lg:px-8 lg:pt-44">
-        <div className="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:flex lg:max-w-none lg:items-center">
+      <div className="container-custom relative">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Text Content */}
           <motion.div
-            className="w-full max-w-xl lg:shrink-0 xl:max-w-2xl"
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
+            className="text-white"
           >
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-              Discover Virtual Treasures in the Real World
-            </h1>
-            <p className="relative mt-6 text-lg leading-8 text-gray-600 sm:max-w-md lg:max-w-none">
-              Embark on an exciting AR treasure hunt and earn exclusive
-              Bitrefill rewards. Use your phone to explore your surroundings,
-              find hidden chests, and unlock amazing prizes!
-            </p>
-            <div className="mt-10 flex items-center gap-x-6">
-              <a
-                href="#start-quest"
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm mb-6"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm font-medium">New Adventure Awaits</span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6"
+            >
+              Discover Digital{" "}
+              <span className="text-[var(--accent)]">Treasures</span> in the
+              Real World
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="text-xl text-white/80 mb-8 max-w-xl"
+            >
+              Embark on an exciting AR treasure hunt. Find virtual chests,
+              collect rewards, and earn real Bitrefill gift cards!
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="flex flex-wrap gap-4"
+            >
+              <button
                 onClick={onStartQuest}
-                className="btn-primary"
+                className="btn-primary bg-white !text-[var(--primary)] hover:bg-white/90"
               >
-                Start Your Quest
-              </a>
+                <MapPin className="w-5 h-5" />
+                <span>Start Quest</span>
+              </button>
               <a
-                href="#how-it-works"
-                className="text-sm font-semibold leading-6 text-gray-900 hover:text-[var(--primary)] transition-colors duration-200"
+                href="#rewards"
+                className="btn-secondary !border-white/20 !text-white hover:!bg-white/20"
               >
-                Learn More <span aria-hidden="true">→</span>
+                <Gift className="w-5 h-5" />
+                <span>View Rewards</span>
               </a>
-            </div>
+            </motion.div>
+
+            {/* Feature List */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+              className="mt-12 grid sm:grid-cols-3 gap-6"
+            >
+              {[
+                { title: "Real Rewards", desc: "Gift cards & more" },
+                { title: "AR Experience", desc: "Immersive hunting" },
+                { title: "Daily Quests", desc: "New treasures daily" },
+              ].map((feature, i) => (
+                <div key={i} className="glass-card p-4 text-center hover-lift">
+                  <h3 className="font-semibold mb-1">{feature.title}</h3>
+                  <p className="text-sm text-white/60">{feature.desc}</p>
+                </div>
+              ))}
+            </motion.div>
           </motion.div>
+
+          {/* 3D/Visual Element */}
           <motion.div
-            className="mt-14 flex justify-end gap-8 sm:-mt-44 sm:justify-start sm:pl-20 lg:mt-0 lg:pl-0"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className="relative hidden lg:block"
           >
-            <div className="ml-auto w-44 flex-none space-y-8 pt-32 sm:ml-0 sm:pt-80 lg:order-last lg:pt-36 xl:order-none xl:pt-80">
-              <div className="relative">
-                <img
-                  src="/models/chest.obj"
-                  alt="Treasure chest"
-                  className="aspect-[2/3] w-full rounded-xl bg-gray-900/5 object-cover shadow-lg animate-float"
-                />
-                <div className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-gray-900/10" />
+            <div className="aspect-square rounded-full bg-gradient-to-br from-white/20 to-transparent p-8">
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-white/10 to-transparent p-8 animate-spin-slow">
+                <div className="w-full h-full rounded-full bg-white/5 backdrop-blur-lg flex items-center justify-center">
+                  <img
+                    src="/images/chest.png"
+                    alt="Treasure Chest"
+                    className="w-2/3 h-2/3 object-contain hover-lift"
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Floating Elements */}
+            <motion.div
+              animate={{
+                y: [0, -20, 0],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                repeatType: "reverse",
+              }}
+              className="absolute top-1/4 right-1/4 w-12 h-12 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-lg"
+            />
+            <motion.div
+              animate={{
+                y: [0, 20, 0],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                repeatType: "reverse",
+                delay: 1,
+              }}
+              className="absolute bottom-1/4 left-1/4 w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg"
+            />
           </motion.div>
         </div>
       </div>
-
-      {/* Bottom gradient */}
-      <div
-        className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
-        aria-hidden="true"
-      >
-        <div
-          className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[var(--primary)] to-[var(--secondary)] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
-          style={{
-            clipPath:
-              "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
-          }}
-        />
-      </div>
-    </div>
+    </section>
   );
 }

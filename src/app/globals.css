@@ -3,22 +3,132 @@
 @tailwind utilities;
 
 :root {
-  --primary: #ff6b00;
-  --secondary: #2563eb;
+  --primary: #7c3aed;
+  --primary-light: #9f67ff;
+  --primary-dark: #5b21b6;
+  --secondary: #10b981;
+  --secondary-light: #34d399;
+  --secondary-dark: #059669;
+  --background: #f9fafb;
+  --foreground: #1f2937;
+  --accent: #f59e0b;
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
 }
 
-body {
-  @apply bg-white text-gray-800;
+@layer base {
+  body {
+    @apply bg-[var(--background)] text-[var(--foreground)] antialiased;
+  }
+
+  ::selection {
+    @apply bg-[var(--primary-light)] text-white;
+  }
 }
 
-.container-custom {
-  @apply container mx-auto px-4 sm:px-6 lg:px-8;
-}
+@layer components {
+  .container-custom {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
+  }
 
-.btn-primary {
-  @apply bg-[var(--primary)] text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity;
-}
+  .btn-primary {
+    @apply bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] 
+           text-white font-semibold py-3 px-6 rounded-xl
+           hover:translate-y-[-2px] hover:shadow-lg
+           active:translate-y-[0px]
+           disabled:opacity-50 disabled:cursor-not-allowed
+           transition-all duration-200 ease-in-out;
+  }
 
-.card {
-  @apply bg-white rounded-xl shadow-md p-6;
+  .btn-secondary {
+    @apply bg-white text-[var(--primary)] font-semibold py-3 px-6 
+           rounded-xl border-2 border-[var(--primary)]
+           hover:bg-[var(--primary-light)] hover:text-white hover:border-transparent
+           active:bg-[var(--primary-dark)]
+           disabled:opacity-50 disabled:cursor-not-allowed
+           transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-lg p-6 sm:p-8
+           hover:shadow-xl transition-shadow duration-200
+           border border-gray-100;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg
+           border border-white/20;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-300
+           focus:ring-2 focus:ring-[var(--primary-light)] focus:border-transparent
+           placeholder:text-gray-400
+           transition-all duration-200;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .badge-primary {
+    @apply bg-[var(--primary-light)]/10 text-[var(--primary-dark)];
+  }
+
+  .badge-secondary {
+    @apply bg-[var(--secondary-light)]/10 text-[var(--secondary-dark)];
+  }
+
+  /* Animation Classes */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-1;
+  }
+
+  .pulse {
+    @apply animate-pulse;
+  }
+
+  .spin {
+    @apply animate-spin;
+  }
+
+  /* Map Styles */
+  .map-container {
+    @apply rounded-3xl overflow-hidden shadow-2xl border-4 border-white;
+  }
+
+  /* AR View Styles */
+  .ar-overlay {
+    @apply fixed inset-0 bg-black/80 backdrop-blur-sm z-50;
+  }
+
+  /* Directional Arrow Styles */
+  .direction-arrow {
+    @apply fixed z-50 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)]
+           rounded-full shadow-lg p-4 text-white
+           animate-bounce;
+  }
+
+  /* Loading Spinner */
+  .loading-spinner {
+    @apply w-12 h-12 border-4 border-[var(--primary)] border-t-transparent
+           rounded-full animate-spin mx-auto;
+  }
+
+  /* Toast Notifications */
+  .toast {
+    @apply fixed bottom-4 right-4 z-50 
+           bg-white rounded-xl shadow-2xl
+           p-4 min-w-[300px]
+           transform transition-all duration-300;
+  }
+
+  .toast-success {
+    @apply border-l-4 border-[var(--success)];
+  }
+
+  .toast-error {
+    @apply border-l-4 border-[var(--error)];
+  }
 }

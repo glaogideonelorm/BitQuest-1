@@ -5,6 +5,10 @@ export interface ChestWithCollections extends Chest {
   collections: Collection[];
 }
 
+export interface CollectionWithChest extends Collection {
+  chest: Chest;
+}
+
 export interface NearbyChest extends Chest {
   distance: number;
   isCollected: boolean;
@@ -18,9 +22,8 @@ export class ChestService {
     radius: number = 1000,
     userId?: number
   ): Promise<NearbyChest[]> {
-    // For now, we'll use a simple distance calculation
-    // In production, you'd want to use PostGIS for proper geo queries
-    const chests = await prisma.chest.findMany({
+    // Get existing chests from database
+    const existingChests = await prisma.chest.findMany({
       include: {
         collections: {
           where: userId ? { userId } : undefined,
@@ -28,7 +31,8 @@ export class ChestService {
       },
     });
 
-    return chests
+    // Calculate distances and filter by radius
+    const nearbyExistingChests = existingChests
       .map((chest) => {
         const location = chest.location as { lat: number; lng: number };
         const distance = this.calculateDistance(
@@ -47,6 +51,36 @@ export class ChestService {
       })
       .filter((chest) => chest.distance <= radius)
       .sort((a, b) => a.distance - b.distance);
+
+    // Generate additional chests if we don't have enough
+    const targetChestCount = 8; // Generate 8 chests total
+    const additionalChestsNeeded = Math.max(
+      0,
+      targetChestCount - nearbyExistingChests.length
+    );
+
+    if (additionalChestsNeeded > 0) {
+      const generatedChests = this.generateRandomChests(
+        lat,
+        lng,
+        radius,
+        additionalChestsNeeded,
+        userId
+      );
+
+      // Add a demo chest very close to the user for testing
+      const demoChest = this.createDemoChest(lat, lng);
+
+      return [demoChest, ...nearbyExistingChests, ...generatedChests]
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, targetChestCount);
+    }
+
+    // Always add demo chest even if we have enough existing chests
+    const demoChest = this.createDemoChest(lat, lng);
+    return [demoChest, ...nearbyExistingChests]
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, targetChestCount);
   }
 
   // Get a specific chest by ID
@@ -100,7 +134,7 @@ export class ChestService {
   }
 
   // Get pending collections for a user
-  async getPendingCollections(userId: number): Promise<Collection[]> {
+  async getPendingCollections(userId: number): Promise<CollectionWithChest[]> {
     return prisma.collection.findMany({
       where: {
         userId,
@@ -141,6 +175,115 @@ export class ChestService {
         metadata: { type, value, model },
       },
     });
+  }
+
+  // Generate random chests around a location
+  private generateRandomChests(
+    centerLat: number,
+    centerLng: number,
+    radius: number,
+    count: number,
+    userId?: number
+  ): NearbyChest[] {
+    const chests: NearbyChest[] = [];
+    const chestTypes = ["common", "rare", "epic"];
+    const typeWeights = [0.7, 0.25, 0.05]; // 70% common, 25% rare, 5% epic
+
+    for (let i = 0; i < count; i++) {
+      // Generate random position within radius
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = Math.random() * radius;
+
+      // Convert polar coordinates to lat/lng
+      const latOffset = (distance * Math.cos(angle)) / 111320; // meters to degrees
+      const lngOffset =
+        (distance * Math.sin(angle)) /
+        (111320 * Math.cos((centerLat * Math.PI) / 180));
+
+      const chestLat = centerLat + latOffset;
+      const chestLng = centerLng + lngOffset;
+
+      // Select chest type based on weights
+      const random = Math.random();
+      let selectedType = "common";
+      let cumulativeWeight = 0;
+
+      for (let j = 0; j < chestTypes.length; j++) {
+        cumulativeWeight += typeWeights[j];
+        if (random <= cumulativeWeight) {
+          selectedType = chestTypes[j];
+          break;
+        }
+      }
+
+      // Generate chest value based on type
+      let value: number;
+      switch (selectedType) {
+        case "epic":
+          value = Math.floor(Math.random() * 500) + 1000; // 1000-1500
+          break;
+        case "rare":
+          value = Math.floor(Math.random() * 200) + 300; // 300-500
+          break;
+        default:
+          value = Math.floor(Math.random() * 100) + 50; // 50-150
+      }
+
+      const chest: NearbyChest = {
+        id: `generated_${Date.now()}_${i}`,
+        location: { lat: chestLat, lng: chestLng },
+        metadata: {
+          type: selectedType,
+          value,
+          model: "chest.glb",
+        },
+        distance: this.calculateDistance(
+          centerLat,
+          centerLng,
+          chestLat,
+          chestLng
+        ),
+        isCollected: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        collections: [],
+      };
+
+      chests.push(chest);
+    }
+
+    return chests;
+  }
+
+  // Create a demo chest very close to the user for testing
+  private createDemoChest(userLat: number, userLng: number): NearbyChest {
+    // Place chest 20 meters away from user
+    const distance = 20; // 20 meters
+    const angle = Math.PI / 4; // 45 degrees (northeast direction)
+
+    // Convert polar coordinates to lat/lng
+    const latOffset = (distance * Math.cos(angle)) / 111320; // meters to degrees
+    const lngOffset =
+      (distance * Math.sin(angle)) /
+      (111320 * Math.cos((userLat * Math.PI) / 180));
+
+    const chestLat = userLat + latOffset;
+    const chestLng = userLng + lngOffset;
+
+    return {
+      id: `demo_${Date.now()}`,
+      location: { lat: chestLat, lng: chestLng },
+      metadata: {
+        type: "epic", // Make it epic for demo
+        value: 1500,
+        model: "chest.glb",
+      },
+      distance: this.calculateDistance(userLat, userLng, chestLat, chestLng),
+      isCollected: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      collections: [],
+    };
   }
 
   // Calculate distance between two points using Haversine formula

@@ -1,0 +1,5 @@
+# Camera parameters for AR.js
+# This is a basic camera calibration file
+# Format: width height fx fy cx cy k1 k2 p1 p2 k3
+
+1280 720 1000.0 1000.0 640.0 360.0 0.0 0.0 0.0 0.0 0.0 

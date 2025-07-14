@@ -17,33 +17,65 @@ const icon = L.icon({
 });
 
 // Custom chest icons based on type and collection status
-const createChestIcon = (type: string, isCollected: boolean) => {
+const createChestIcon = (
+  type: string,
+  isCollected: boolean,
+  isDemo: boolean = false
+) => {
   const colors = {
-    common: isCollected ? "#888" : "#8b4513",
-    rare: isCollected ? "#888" : "#ffd700",
-    epic: isCollected ? "#888" : "#00ffff",
+    common: isCollected ? "#9CA3AF" : "#7C3AED",
+    rare: isCollected ? "#9CA3AF" : "#F59E0B",
+    epic: isCollected ? "#9CA3AF" : "#10B981",
   };
+
+  const size = isDemo ? 48 : 40;
+  const borderWidth = isDemo ? 3 : 2;
+  const glowColor = isDemo ? "#F87171" : colors[type as keyof typeof colors];
+  const glowSize = isDemo ? "0 0 20px" : "0 0 15px";
 
   return L.divIcon({
     className: "chest-marker",
     html: `
+      <style>
+        @keyframes pulse {
+          0% { transform: scale(1); box-shadow: ${glowSize} ${glowColor}40; }
+          50% { transform: scale(1.1); box-shadow: ${glowSize} ${glowColor}80; }
+          100% { transform: scale(1); box-shadow: ${glowSize} ${glowColor}40; }
+        }
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+      </style>
       <div style="
-        width: 30px;
-        height: 30px;
-        background: ${colors[type as keyof typeof colors] || colors.common};
-        border: 2px solid white;
+        width: ${size}px;
+        height: ${size}px;
+        background: ${colors[type as keyof typeof colors]};
+        border: ${borderWidth}px solid white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        ${isCollected ? "opacity: 0.5;" : ""}
+        box-shadow: ${glowSize} ${glowColor}60;
+        ${isCollected ? "opacity: 0.5;" : "animation: pulse 2s infinite, float 3s infinite ease-in-out;"}
+        transition: all 0.3s ease;
       ">
-        <span style="color: white; font-size: 16px; font-weight: bold;">💎</span>
+        <span style="
+          color: white;
+          font-size: ${isDemo ? 24 : 20}px;
+          font-weight: bold;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        ">💎</span>
+        ${
+          isDemo
+            ? '<div style="position: absolute; top: -6px; right: -6px; background: #F87171; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">!</div>'
+            : ""
+        }
       </div>
     `,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   });
 };
 
@@ -56,7 +88,8 @@ interface Chest {
 }
 
 interface MapProps {
-  onChestSelect?: (chest: Chest) => void;
+  onChestSelect?: (chest: Chest, allChests?: Chest[]) => void;
+  setChests?: (chests: Chest[]) => void;
 }
 
 export default function Map({ onChestSelect }: MapProps) {
@@ -70,6 +103,34 @@ export default function Map({ onChestSelect }: MapProps) {
     40.7128, -74.006,
   ]); // Start with a default
   const { user } = useFarcaster();
+
+  // Spawn a test chest 5 meters away from user
+  const spawnTestChest = () => {
+    if (!userLocation) {
+      alert("Please allow location access first");
+      return;
+    }
+
+    // Calculate a point 5 meters north of current location
+    const latOffset = 5 * 0.00000899; // ~5 meters in latitude
+    const newLat = userLocation[0] + latOffset;
+    const newLng = userLocation[1];
+
+    const testChest: Chest = {
+      id: `demo_${Date.now()}`,
+      location: { lat: newLat, lng: newLng },
+      metadata: {
+        type: "common",
+        value: 100,
+        model: "chest.glb",
+      },
+      distance: 5,
+      isCollected: false,
+    };
+
+    setChests((prev) => [...prev, testChest]);
+    alert("Test chest spawned 5 meters north of your location!");
+  };
 
   // Fetch nearby chests
   const fetchNearbyChests = useCallback(
@@ -85,12 +146,13 @@ export default function Map({ onChestSelect }: MapProps) {
         if (response.ok) {
           const data = await response.json();
           setChests(data);
+          if (typeof setChests === "function") setChests(data);
         }
       } catch (error) {
         console.error("Error fetching nearby chests:", error);
       }
     },
-    [user?.fid]
+    [user?.fid, setChests]
   );
 
   // Collect a chest
@@ -143,13 +205,14 @@ export default function Map({ onChestSelect }: MapProps) {
 
     // Add new chest markers
     chests.forEach((chest) => {
+      const isDemo = chest.id.startsWith("demo_");
       const marker = L.marker([chest.location.lat, chest.location.lng], {
-        icon: createChestIcon(chest.metadata.type, chest.isCollected),
+        icon: createChestIcon(chest.metadata.type, chest.isCollected, isDemo),
       })
         .addTo(mapInstanceRef.current!)
         .bindPopup(
           `<div class="text-center">
-             <h3 class="font-semibold mb-2">Treasure Chest</h3>
+             <h3 class="font-semibold mb-2">${isDemo ? "🎯 Demo " : ""}Treasure Chest</h3>
              <p class="text-sm text-gray-600 capitalize">${chest.metadata.type}</p>
              <p class="text-sm text-gray-600">Value: ${chest.metadata.value} points</p>
              <p class="text-sm text-gray-600">Distance: ${Math.round(chest.distance)}m</p>
@@ -191,7 +254,7 @@ export default function Map({ onChestSelect }: MapProps) {
     if (mapContainerRef.current && !mapInstanceRef.current) {
       mapInstanceRef.current = L.map(mapContainerRef.current).setView(
         userLocation,
-        13
+        14
       );
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -211,7 +274,7 @@ export default function Map({ onChestSelect }: MapProps) {
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [userLocation]);
 
   // Effect to update map view and user marker when location changes
   useEffect(() => {
@@ -235,7 +298,7 @@ export default function Map({ onChestSelect }: MapProps) {
     (window as any).selectChestForAR = (chestId: string) => {
       const chest = chests.find((c) => c.id === chestId);
       if (chest && onChestSelect) {
-        onChestSelect(chest);
+        onChestSelect(chest, chests);
       }
     };
     return () => {
@@ -245,19 +308,43 @@ export default function Map({ onChestSelect }: MapProps) {
   }, [user?.fid, chests, onChestSelect]);
 
   return (
-    <div className="w-full h-[70vh] relative">
+    <div className="w-full h-full relative">
+      {/* Spawn Test Chest Button */}
+      <button
+        onClick={spawnTestChest}
+        className="absolute top-4 right-4 z-10 glass-card hover:bg-red-500 hover:text-white px-4 py-2 rounded-xl shadow-lg font-semibold text-sm flex items-center gap-2 group transition-all duration-200"
+        title="Spawn a test chest 5m away (for testing only)"
+      >
+        <span className="text-lg group-hover:scale-110 transition-transform">
+          🎯
+        </span>
+        <span>Spawn Test Chest</span>
+      </button>
+
+      {/* Loading State */}
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-100 z-10 flex items-center justify-center rounded-xl">
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-xl">
           <div className="text-center">
-            <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Getting your location...</p>
+            <div className="loading-spinner mb-4" />
+            <p className="text-gray-600 animate-pulse">Loading map...</p>
           </div>
         </div>
       )}
-      <div
-        ref={mapContainerRef}
-        className="w-full h-full rounded-xl shadow-lg"
-      />
+
+      {/* Map Container */}
+      <div ref={mapContainerRef} className="w-full h-full map-container" />
+
+      {/* Location Permission Warning */}
+      {!userLocation && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+          <div className="glass-card bg-yellow-500/10 border-yellow-500/20 px-6 py-3 rounded-xl shadow-lg">
+            <p className="text-yellow-700 font-medium flex items-center gap-2">
+              <span className="animate-pulse">📍</span>
+              Please enable location access to find nearby treasures
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

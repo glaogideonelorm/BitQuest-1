@@ -1,7 +1,7 @@
 import { BitrefillClient, GiftCardOrder } from "./bitrefill";
 import { prisma } from "./db";
-import { ChestService } from "./chestService";
-import type { Collection } from "@prisma/client";
+import { ChestService, CollectionWithChest } from "./chestService";
+import type { Collection, Chest } from "@prisma/client";
 
 export interface RewardConfig {
   minCollectionsForRedemption: number;
@@ -21,12 +21,12 @@ export class RewardService {
   }
 
   // Get pending collections for a user
-  async getPendingCollections(userId: number): Promise<Collection[]> {
+  async getPendingCollections(userId: number): Promise<CollectionWithChest[]> {
     return this.chestService.getPendingCollections(userId);
   }
 
   // Calculate total value of pending rewards
-  calculateTotalValue(collections: Collection[]): number {
+  calculateTotalValue(collections: CollectionWithChest[]): number {
     return collections.reduce((total, collection) => {
       const metadata = collection.chest.metadata as { value: number };
       return total + (metadata.value || 0);
@@ -34,12 +34,12 @@ export class RewardService {
   }
 
   // Check if user has enough collections to redeem
-  canRedeem(collections: Collection[]): boolean {
+  canRedeem(collections: CollectionWithChest[]): boolean {
     return collections.length >= this.config.minCollectionsForRedemption;
   }
 
   // Create a gift card order from pending rewards
-  async createRedemptionOrder(collections: Collection[], userEmail: string) {
+  async createRedemptionOrder(collections: CollectionWithChest[], userEmail: string) {
     if (!this.canRedeem(collections)) {
       throw new Error(
         `Minimum ${this.config.minCollectionsForRedemption} collections required for redemption`
